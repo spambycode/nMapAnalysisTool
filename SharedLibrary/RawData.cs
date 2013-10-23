@@ -8,7 +8,7 @@ using System.Diagnostics;
 namespace SharedLibrary
 {
 
-    class RawData
+    public class RawData
     {
 
         public string PORT_NUM { get; set; }

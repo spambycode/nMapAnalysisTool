@@ -6,14 +6,11 @@ using System.Threading.Tasks;
 
 namespace SharedLibrary
 {
-    public class MainData
+    public class IpIndex
     {
-        public MainData()
+        public IpIndex()
         {
-
         }
-
-        public Insert
 
     }
 }
