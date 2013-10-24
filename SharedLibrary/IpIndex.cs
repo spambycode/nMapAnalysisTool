@@ -15,7 +15,9 @@ namespace SharedLibrary
         private BSTNode _IPTree;
         private short _ipCounter;
 
-        enum InsertType {IP_PortInsert, IP_OSInsert };
+        enum InsertType {IP_PortInsert, IP_OSInsert, IP_InsertOnly };
+
+
         public IpIndex()
         {
             indexBackupFile = new FileStream("index.bin", FileMode.OpenOrCreate);
@@ -33,7 +35,7 @@ namespace SharedLibrary
         /// <param name="ip">IP of scanned computer</param>
         /// <param name="RD">Data containing Port and OS information</param>
         /// <param name="optionType">Inserting Action</param>
-        public void InsertIPAddress(string ip, RawData RD, InsertType optionType)
+        public void Add(string ip, RawData RD, InsertType optionType)
         {
             BSTNode ipNode = null;
 
@@ -62,8 +64,13 @@ namespace SharedLibrary
                 case InsertType.IP_PortInsert:          
                     ipNode.InsertOnePort(RD);
                     break;
+                case InsertType.IP_InsertOnly:
+                    break;
+                default:
+                    break;
             }
         }
+
 
         //--------------------------------------------------------------------
         /// <summary>
@@ -151,6 +158,9 @@ namespace SharedLibrary
             return true;
         }
 
+
+
+
         //--------------------------------------------------------------------------
         /// <summary>
         /// Save all tree information to the file in order form
@@ -167,18 +177,40 @@ namespace SharedLibrary
 
         }
 
+        //-------------------------------------------------------------------------
+        /// <summary>
+        /// Rebuilds the BST from the backup file
+        /// </summary>
         private void ReadBackUpFile()
         {
-            _ipCounter = bBackupFileR.ReadInt16();
             short PortCount;
-            string IP, OS, OS_Version, Port,PortType, PortService, PortState;
+            string IP;
+            RawData rawData = new RawData();
+            _ipCounter = bBackupFileR.ReadInt16();
+
 
             for(int i = 0; i < _ipCounter; i++)
             {
                 IP = bBackupFileR.ReadString();
-                OS = bBackupFileR.ReadString():
-                OS_Version = bBackupFileR.ReadString():
+                rawData.OS_TYPE    = bBackupFileR.ReadString();
+                rawData.OS_VERSION = bBackupFileR.ReadString();
                 PortCount = bBackupFileR.ReadInt16();
+
+                if (PortCount > 0)
+                {
+                    for (int j = 0; i < PortCount; j++)
+                    {
+                        rawData.PORT_NUM = bBackupFileR.ReadString();
+                        rawData.PORT_TYPE = bBackupFileR.ReadString();
+                        rawData.SERVICE = bBackupFileR.ReadString();
+                        rawData.STATE = bBackupFileR.ReadString();
+
+                        Add(IP, rawData, InsertType.IP_PortInsert);
+
+                    }
+                }
+                    
+                Add(IP, rawData, InsertType.IP_OSInsert);
 
             }
         }

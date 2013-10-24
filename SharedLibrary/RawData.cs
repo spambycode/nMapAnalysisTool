@@ -35,6 +35,13 @@ namespace SharedLibrary
             nMapProcess.Start();
         }
 
+        //-----------------------------------------------------------------------------------
+
+        public RawData()
+        {
+
+        }
+
         //-------------------------------------------------------------------------------------
         /// <summary>
         /// Reads a line from the command prompt's output, and returns the raw data of 
