@@ -12,9 +12,9 @@ namespace SharedLibrary
         private FileStream indexBackupFile;
         private BinaryWriter bBackupFileW;
         private BinaryReader bBackupFileR;
-        private BSTIpNode _IPTree;
+        private BSTNode _IPTree;
         private short _ipCounter;
-        private short _root;
+
         enum InsertType {IP_PortInsert, IP_OSInsert };
         public IpIndex()
         {
@@ -22,7 +22,6 @@ namespace SharedLibrary
             bBackupFileR = new BinaryReader(indexBackupFile);
             bBackupFileW = new BinaryWriter(indexBackupFile);
             _ipCounter = 0;
-            _root = -1;
 
 
         }
@@ -36,13 +35,12 @@ namespace SharedLibrary
         /// <param name="optionType">Inserting Action</param>
         public void InsertIPAddress(string ip, RawData RD, InsertType optionType)
         {
-            BSTIpNode ipNode = null;
+            BSTNode ipNode = null;
 
-            if (_root == -1)
+            if (_IPTree == null)
             {
 
-                _IPTree = new BSTIpNode(ip);
-                _root = 0;
+                _IPTree = new BSTNode(ip);
 
             }
 
@@ -67,9 +65,17 @@ namespace SharedLibrary
             }
         }
 
+        //--------------------------------------------------------------------
+        /// <summary>
+        /// Save all information and close files.
+        /// </summary>
         public void FinishUp()
         {
-
+            bBackupFileW.Write(_ipCounter);
+            IOTSave(_IPTree);
+            bBackupFileR.Close();
+            bBackupFileW.Close();
+            indexBackupFile.Close();
         }
 
         //---------------------------------------------------------------------
@@ -78,9 +84,9 @@ namespace SharedLibrary
         /// </summary>
         /// <param name="ip">Search term</param>
         /// <returns>Node of the found searched item</returns>
-        private BSTIpNode SearchForIP(string ip)
+        private BSTNode SearchForIP(string ip)
         {
-            BSTIpNode currentNode = _IPTree;
+            BSTNode currentNode = _IPTree;
 
             while (currentNode != null)
             {
@@ -110,7 +116,7 @@ namespace SharedLibrary
         /// <returns>State of inserting</returns>
         private bool InsertIPAddress(string ip)
         {
-            BSTIpNode prevNode = null, currentNode = _IPTree;
+            BSTNode prevNode = null, currentNode = _IPTree;
 
             while (currentNode != null)
             {
@@ -133,16 +139,48 @@ namespace SharedLibrary
 
             if (prevNode.CompareTo(ip) > 0)
             {
-                prevNode.RChildPtr = new BSTIpNode(ip);
+                prevNode.RChildPtr = new BSTNode(ip);
             }
             else
             {
-                prevNode.LChildPtr = new BSTIpNode(ip);
+                prevNode.LChildPtr = new BSTNode(ip);
             }
 
             _ipCounter++;
 
             return true;
+        }
+
+        //--------------------------------------------------------------------------
+        /// <summary>
+        /// Save all tree information to the file in order form
+        /// </summary>
+        /// <param name="currentNode">Root of the BSTNode tree</param>
+        private void IOTSave(BSTNode currentNode)
+        {
+            if (currentNode == null)
+                return;
+
+            IOTSave(currentNode.LChildPtr);
+            currentNode.FinishUp(bBackupFileW);
+            IOTSave(currentNode.RChildPtr);
+
+        }
+
+        private void ReadBackUpFile()
+        {
+            _ipCounter = bBackupFileR.ReadInt16();
+            short PortCount;
+            string IP, OS, OS_Version, Port,PortType, PortService, PortState;
+
+            for(int i = 0; i < _ipCounter; i++)
+            {
+                IP = bBackupFileR.ReadString();
+                OS = bBackupFileR.ReadString():
+                OS_Version = bBackupFileR.ReadString():
+                PortCount = bBackupFileR.ReadInt16();
+
+            }
         }
     }
 

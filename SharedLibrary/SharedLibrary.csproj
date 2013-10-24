@@ -39,8 +39,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="BSTIpNode.cs" />
-    <Compile Include="BSTPortNode.cs" />
+    <Compile Include="BSTNode.cs" />
     <Compile Include="IpIndex.cs" />
     <Compile Include="MainData.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

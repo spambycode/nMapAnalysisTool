@@ -3,35 +3,43 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.IO;
 
 namespace SharedLibrary
 {
-    class BSTIpNode
+    class BSTNode
     {
-        public BSTIpNode LChildPtr { get; set; }
+
+        private struct PORTInformation
+        {
+            public string PORT;
+            public string PORT_TYPE;
+            public string STATE;
+            public string SERVICE;
+        }
+
+        public BSTNode LChildPtr { get; set; }
         public string IP { get; set; }
-        public BSTPortNode PORT_BST { get; set; }
         public string OS_TYPE { get; set; }
         public string OS_VERSION { get; set; }
-        public BSTIpNode RChildPtr { get; set; }
-
+        public BSTNode RChildPtr { get; set; }
+        public PORTInformation[] PortInfo;
         private short _portCount;
-        private short _portRoot;
 
         //-----------------------------------------------------------------------
         /// <summary>
-        /// Initalize a tree node containing the compartive IP parameter
+        /// Initialize a tree node containing the comparative IP parameter
         /// </summary>
         /// <param name="IP">IP of the network</param>
-        public BSTIpNode(string IP)
+        public BSTNode(string IP)
         {
             this.IP = IP;
             OS_TYPE = "Unknown";
             OS_VERSION = "0";
             _portCount = 0;
-            _portRoot = -1;
-            LChildPtr = null;
-            RChildPtr = null;
+            PortInfo   = new PORTInformation[0];
+            LChildPtr  = null;
+            RChildPtr  = null;
         }
 
 
@@ -49,53 +57,20 @@ namespace SharedLibrary
 
         //----------------------------------------------------------------------------
         /// <summary>
-        /// Insert a port into the BST for the current IP
+        /// Insert a port that relates to the current IP
         /// </summary>
         /// <param name="RD">Raw information about the port</param>
 
         public void InsertOnePort(RawData RD)
         {
-            BSTPortNode childNode = null;
-            BSTPortNode prevNode = null;
-            BSTPortNode InsertNode = new BSTPortNode(Int32.Parse(RD.PORT_NUM),
-                                        RD.PORT_TYPE, RD.STATE, RD.SERVICE);
-            if (_portRoot == -1)
-            {
-                PORT_BST = InsertNode;
-                _portRoot = 0;
-            }
-            else
-            {
-                //Search for a posisition in the tree to insert.
-                childNode = PORT_BST;
+            Array.Resize<PORTInformation>(ref PortInfo, PortInfo.Length + 1);
 
-                while (childNode != null)
-                {
-                    prevNode = childNode;
+            PortInfo[_portCount].PORT      = RD.PORT_NUM;
+            PortInfo[_portCount].PORT_TYPE = RD.OS_TYPE;
+            PortInfo[_portCount].SERVICE   = RD.SERVICE;
+            PortInfo[_portCount].STATE     = RD.STATE;
 
-                    if (childNode.CompareTo(RD.PORT_NUM) > 0)
-                    {
-                        childNode = childNode.RChildPtr;
-                    }
-                    else
-                    {
-                        childNode = childNode.LChildPtr;
-                    }
-                }
-
-                //Hit a null, we've reached the bottom, time to insert
-                if (prevNode.CompareTo(RD.PORT_NUM) > 0)
-                {
-                    prevNode.RChildPtr = InsertNode;
-                }
-                else
-                {
-                    prevNode.LChildPtr = InsertNode;
-                }
-
-                _portCount++;
-
-            }
+            ++_portCount;
         }
 
 
@@ -107,6 +82,26 @@ namespace SharedLibrary
         public int CompareTo(string ip)
         {
             return IP.ToUpper().CompareTo(ip.ToUpper());
+        }
+
+        //--------------------------------------------------------------------------
+        public void FinishUp(BinaryWriter bIndexFileW)
+        {
+            BSTNode currentNode = PORT_BST;
+
+            bIndexFileW.Write(_portCount);
+            bIndexFileW.Write(IP);
+            bIndexFileW.Write(OS_TYPE);
+            bIndexFileW.Write(OS_VERSION);
+
+            foreach(PORTInformation pi in PortInfo)
+            {
+                bIndexFileW.Write(pi.PORT);
+                bIndexFileW.Write(pi.PORT_TYPE);
+                bIndexFileW.Write(pi.SERVICE);
+                bIndexFileW.Write(pi.STATE);
+            }
+
         }
 
     }
