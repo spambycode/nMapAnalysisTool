@@ -7,18 +7,18 @@ using System.IO;
 
 namespace SharedLibrary
 {
-    public class IpIndex
+    public class StoreIndex
     {
-        private FileStream indexBackupFile;
-        private BinaryWriter bBackupFileW;
-        private BinaryReader bBackupFileR;
-        private BSTNode _IPTree;
-        private short _ipCounter;
+        private FileStream indexBackupFile;      //Stream to BST tree backup file
+        private BinaryWriter bBackupFileW;       //Binary writter for saving BST
+        private BinaryReader bBackupFileR;       //Binary reader for reading saved BST
+        private BSTNode _IPTree;                 //Binary tree holding IP, port, and OS information
+        private short _ipCounter;                //Total amount of IP's searched
 
-        enum InsertType {IP_PortInsert, IP_OSInsert, IP_InsertOnly };
+        enum InsertType {IP_PortInsert, IP_OSInsert};  //Inserting into BST options
 
-
-        public IpIndex()
+        //------------------------------------------------------------------------------
+        public StoreIndex()
         {
             indexBackupFile = new FileStream("index.bin", FileMode.OpenOrCreate);
             bBackupFileR = new BinaryReader(indexBackupFile);
@@ -35,23 +35,23 @@ namespace SharedLibrary
         /// <param name="ip">IP of scanned computer</param>
         /// <param name="RD">Data containing Port and OS information</param>
         /// <param name="optionType">Inserting Action</param>
-        public void Add(string ip, RawData RD, InsertType optionType)
+        public void Add(RawData RD, InsertType optionType)
         {
             BSTNode ipNode = null;
 
             if (_IPTree == null)
             {
 
-                _IPTree = new BSTNode(ip);
+                _IPTree = new BSTNode(RD.IP_ADDRESS);
 
             }
 
-            ipNode = SearchForIP(ip);
+            ipNode = SearchForIP(RD.IP_ADDRESS);
 
             if(ipNode == null)
             {
-                InsertIPAddress(ip);
-                ipNode = SearchForIP(ip);
+                InsertIPAddress(RD.IP_ADDRESS);
+                ipNode = SearchForIP(RD.IP_ADDRESS);
             }
 
 
@@ -63,8 +63,6 @@ namespace SharedLibrary
                     break;
                 case InsertType.IP_PortInsert:          
                     ipNode.InsertOnePort(RD);
-                    break;
-                case InsertType.IP_InsertOnly:
                     break;
                 default:
                     break;
@@ -168,8 +166,11 @@ namespace SharedLibrary
         /// <param name="currentNode">Root of the BSTNode tree</param>
         private void IOTSave(BSTNode currentNode)
         {
-            if (currentNode == null)
-                return;
+
+            for (int i = 0; i < _ipCounter; i++ )
+
+                if (currentNode == null)
+                    return;
 
             IOTSave(currentNode.LChildPtr);
             currentNode.FinishUp(bBackupFileW);
@@ -184,14 +185,13 @@ namespace SharedLibrary
         private void ReadBackUpFile()
         {
             short PortCount;
-            string IP;
             RawData rawData = new RawData();
             _ipCounter = bBackupFileR.ReadInt16();
 
 
             for(int i = 0; i < _ipCounter; i++)
             {
-                IP = bBackupFileR.ReadString();
+                rawData.IP_ADDRESS = bBackupFileR.ReadString();
                 rawData.OS_TYPE    = bBackupFileR.ReadString();
                 rawData.OS_VERSION = bBackupFileR.ReadString();
                 PortCount = bBackupFileR.ReadInt16();
@@ -200,17 +200,17 @@ namespace SharedLibrary
                 {
                     for (int j = 0; i < PortCount; j++)
                     {
-                        rawData.PORT_NUM = bBackupFileR.ReadString();
+                        rawData.PORT_NUM  = bBackupFileR.ReadString();
                         rawData.PORT_TYPE = bBackupFileR.ReadString();
-                        rawData.SERVICE = bBackupFileR.ReadString();
-                        rawData.STATE = bBackupFileR.ReadString();
+                        rawData.SERVICE   = bBackupFileR.ReadString();
+                        rawData.STATE     = bBackupFileR.ReadString();
 
-                        Add(IP, rawData, InsertType.IP_PortInsert);
+                        Add(rawData, InsertType.IP_PortInsert);
 
                     }
                 }
                     
-                Add(IP, rawData, InsertType.IP_OSInsert);
+                Add(rawData, InsertType.IP_OSInsert);
 
             }
         }
