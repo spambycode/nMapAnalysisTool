@@ -87,7 +87,6 @@ namespace SharedLibrary
         //--------------------------------------------------------------------------
         public void FinishUp(BinaryWriter bIndexFileW)
         {
-            BSTNode currentNode = PORT_BST;
 
             bIndexFileW.Write(_portCount);
             bIndexFileW.Write(IP);

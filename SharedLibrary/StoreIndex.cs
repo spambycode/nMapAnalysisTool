@@ -10,7 +10,7 @@ namespace SharedLibrary
     public class StoreIndex
     {
         private FileStream indexBackupFile;      //Stream to BST tree backup file
-        private BinaryWriter bBackupFileW;       //Binary writter for saving BST
+        private BinaryWriter bBackupFileW;       //Binary writer for saving BST
         private BinaryReader bBackupFileR;       //Binary reader for reading saved BST
         private BSTNode _IPTree;                 //Binary tree holding IP, port, and OS information
         private short _ipCounter;                //Total amount of IP's searched
