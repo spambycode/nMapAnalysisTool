@@ -123,16 +123,28 @@ namespace SqlInterface
         //----------------------------------------------------------------------------
         private void QueryChild(BSTNode currentNode)
         {
-            string queryStr;
+            int IP_ID;
+            int PORT_ID;
 
             if (this.OpenConnection() == true)
             {
+
+
+                IP_ID = InsertIP(currentNode.IP);
+
                 foreach (BSTNode.PORTInformation p in currentNode.PortInfo)
                 {
-                    queryStr = string.Format("SELECT * FROM nmapanalysistool.port," + 
-                                             " nmapanalysistool.port_information " + 
-                                             "where port_information.id = port.port_informationID " + 
-                                             "and port.port_number = {0};", p.PORT);
+                    if ((PORT_ID = IsPortKnown(p)) != -1)
+                    {
+                        if(IsPortConnectToIP(IP_ID, PORT_ID))
+                        {
+                            continue;
+                        }
+                        else
+                        {
+
+                        }
+                    }
 
 
 
@@ -140,27 +152,68 @@ namespace SqlInterface
             }
         }
 
+        //----------------------------------------------------------------------------
 
         /// <summary>
         /// Check if port information has already been entered
         /// </summary>
         /// <param name="p">Port that is being looked at</param>
-        /// <returns>true if port is known</returns>
-        private bool IsPortKnown(BSTNode.PORTInformation p, string ip)
+        /// <returns>returns ID of port that is known in the database</returns>
+        private int IsPortKnown(BSTNode.PORTInformation p)
         {
             string query = string.Format("SELECT * FROM nmapanalysistool.port," +
                                          " nmapanalysistool.port_information " +
                                          "where port_information.id = port.port_informationID " +
-                                         "and port.port_number = {0};", p.PORT);
+                                         "and port.port_number = {0} "+
+                                         "and port., p.PORT);
 
             MySqlCommand cmd = new MySqlCommand(query, connection);
             MySqlDataReader dataReader = cmd.ExecuteReader();
 
             if (dataReader["id"] != null)
-                return true;
+                return Convert.ToInt32(dataReader["id"]);
 
 
-            return false;
+            return -1;
+        }
+
+        //-----------------------------------------------------------------------------
+        /// <summary>
+        /// Inserts the IP into the database
+        /// </summary>
+        /// <param name="ip">IP of the targeted computer network</param>
+        /// <returns>ID of ip in the table</returns>
+        private int InsertIP(string ip)
+        {
+            MySqlCommand cmd;
+            MySqlDataReader dataReader;
+            string queryCheck = string.Format("SELECT * FROM nmapanalysistool.ipaddress" +
+                                              "where ipaddress.IpAddress = \"{0}\";", ip);
+            string queryInsert = string.Format("INSERT INTO nmapanalysistool.ipaddress(ipaddress.IpAddress)" +  
+                                               "VALUES(\"{0}\");", ip);
+            int id = -1;
+
+            try
+            {
+                cmd = new MySqlCommand(queryInsert, connection);
+
+            } catch(MySqlException ex)
+            {
+                if(ex.ErrorCode == 1062)
+                {
+                    //Dup was found
+                }
+            }
+            finally
+            {
+                cmd = new MySqlCommand(queryCheck, connection);
+                dataReader = cmd.ExecuteReader();
+
+                if (dataReader.Read())
+                    id = Convert.ToInt32(dataReader["id"]);
+
+            }
+            return id;
         }
 
     }
