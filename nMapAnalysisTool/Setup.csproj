@@ -52,6 +52,10 @@
       <Project>{4c7dd863-70e9-43f3-93e2-42b3c25b249c}</Project>
       <Name>SharedLibrary</Name>
     </ProjectReference>
+    <ProjectReference Include="..\SqlInterface\SqlInterface.csproj">
+      <Project>{67c9d9d9-cf5e-4c40-8409-8d28041ee5fe}</Project>
+      <Name>SqlInterface</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

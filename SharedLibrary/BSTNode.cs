@@ -64,10 +64,10 @@ namespace SharedLibrary
 
         public void InsertOnePort(RawData RD)
         {
-            Array.Resize<PORTInformation>(ref PortInfo, PortInfo.Length + 1);
+            Array.Resize<PORTInformation>(ref PortInfo, PortInfo.Length+1);
 
             PortInfo[_portCount].PORT      = RD.PORT_NUM;
-            PortInfo[_portCount].PORT_TYPE = RD.OS_TYPE;
+            PortInfo[_portCount].PORT_TYPE = RD.PORT_TYPE;
             PortInfo[_portCount].SERVICE   = RD.SERVICE;
             PortInfo[_portCount].STATE     = RD.STATE;
 
@@ -82,22 +82,6 @@ namespace SharedLibrary
         public int CompareTo(string ip)
         {
             return IP.ToUpper().CompareTo(ip.ToUpper());
-        }
-
-        //-------------------------------------------------------------------------
-        /// <summary>
-        /// Overloaded operator to easily compare two IP address from a node
-        /// </summary>
-        /// <param name="node">Current node being compared to</param>
-        /// <param name="ip">ip that is being checked for</param>
-        /// <returns></returns>
-        public bool operator ==(BSTNode node, string ip)
-        {
-            if (node.IP.CompareTo(ip) == 0)
-                return true;
-
-
-            return false;
         }
 
     }

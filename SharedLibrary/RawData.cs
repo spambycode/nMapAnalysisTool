@@ -32,13 +32,11 @@ namespace SharedLibrary
 
         private Process nMapProcess;
 
-        public RawData(string[] Arguments)
+        public RawData(string Arguments)
         {
             nMapProcess = new Process();
-            nMapProcess.StartInfo.FileName = "nmap.exe";
-
-            foreach (string arg in Arguments)
-                nMapProcess.StartInfo.Arguments += arg;
+            nMapProcess.StartInfo.FileName  = "nmap";
+            nMapProcess.StartInfo.Arguments = Arguments;
 
             nMapProcess.StartInfo.UseShellExecute = false;
             nMapProcess.StartInfo.RedirectStandardOutput = true;
@@ -68,9 +66,12 @@ namespace SharedLibrary
             while(!nMapProcess.StandardOutput.EndOfStream)
             {
                 string Line = nMapProcess.StandardOutput.ReadLine();
-                var LineSplit = Line.Split(' ');
+                var LineSplit = Line.Split(new char[]{' '}, StringSplitOptions.RemoveEmptyEntries);
 
-                if (IPAddress.TryParse(LineSplit[LineSplit.Length], out IpAddress))
+                if (LineSplit.Length == 0)
+                    continue;
+
+                if (IPAddress.TryParse(LineSplit[LineSplit.Length-1], out IpAddress))
                 {
                     IP_ADDRESS = IpAddress.ToString();
                 }
@@ -78,10 +79,12 @@ namespace SharedLibrary
                 //nMap always places port numbers first before information and status info
                 else
                 {
-                    if (Int32.TryParse(LineSplit[0], out portTest))
-                    {
-                        //EX Results: 80/TCP OPEN HTTP
-                        var PortTypeSplit = LineSplit[0].Split('/');
+                    //EX Results: 80/TCP OPEN HTTP
+                    var PortTypeSplit = LineSplit[0].Split('/');
+                    if (PortTypeSplit.Length == 2 && LineSplit.Length >= 3 &&
+                        Int32.TryParse(PortTypeSplit[0], out portTest))
+                    {      
+
                         PORT_NUM          = PortTypeSplit[0];
                         PORT_TYPE         = PortTypeSplit[1];
                         STATE             = LineSplit[1];
@@ -92,7 +95,7 @@ namespace SharedLibrary
                     else
                     {
 
-                        if (LineSplit[0].ToUpper().CompareTo("OS") == 0)
+                        if (LineSplit[0].ToUpper().CompareTo("OS") == 0 && LineSplit.Length > 2)
                         {
                             //EX Results: OS details: Linux 2.6.32 - 2.6.39 (Might not have version Number)
                             OS_TYPE = LineSplit[2];

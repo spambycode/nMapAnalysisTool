@@ -127,6 +127,8 @@ namespace SqlInterface
                     ConnectIPAndPort(IP_ID, PORT_ID);
                 }
             }
+
+            CloseConnection();
         }
 
         //----------------------------------------------------------------------------
@@ -140,18 +142,18 @@ namespace SqlInterface
         {
 
             string selectInfo = string.Format("Select * From nmapanalysistool.port_information" +
-                                              " where port_information.portInfo = \"{0}\"", p.SERVICE);
+                                              " where port_information.portInfo = '{0}'", p.SERVICE);
 
             string insertInfo = string.Format("INSERT INTO nmapanalysistool.port_information" +
-                                              "(portInfo) VALUES ({0});", p.SERVICE);
+                                              "(portInfo) VALUES ('{0}');", p.SERVICE);
 
-            string selectPort = "Select id From nmapanalysistool.port, mapanalysistool.port_information" +
-                                " where port.port_number = {0} and port.state = {1}" +
+            string selectPort = "Select * From nmapanalysistool.port, nmapanalysistool.port_information" +
+                                " where port.port_number = {0} and port.state = '{1}' " +
                                 "and port.port_informationID = {2}";
 
             string insertPort = "INSERT INTO nmapanalysistool.port" +
                                 "(port_number, state, port_informationID)" +
-                                "VALUES({0}, \"{1}\", {2})";
+                                "VALUES({0}, '{1}', {2})";
             int infoID = (int)GetAndSetRowCommand(insertInfo, selectInfo, "id");
 
             //Assign inforID to the following queries
@@ -173,9 +175,10 @@ namespace SqlInterface
         private int InsertIP(string ip)
         {
             string queryCheck = string.Format("SELECT * FROM nmapanalysistool.ipaddress" +
-                                              "where ipaddress.IpAddress = \"{0}\";", ip);
+                                              " where ipaddress.IpAddress = '{0}'", ip);
+
             string queryInsert = string.Format("INSERT INTO nmapanalysistool.ipaddress(ipaddress.IpAddress)" +  
-                                               "VALUES(\"{0}\");", ip);
+                                               "VALUES('{0}')", ip);
            
             return (int)GetAndSetRowCommand(queryInsert, queryCheck, "id");
         }
@@ -192,6 +195,7 @@ namespace SqlInterface
                                                    "FROM nmapanalysistool.ip_port " +
                                                    "where ip_port.IP_ID = {0} and ip_port.PortID = {1};",
                                                    ip_id, port_id);
+
             string insertIpAndPort = string.Format("INSERT INTO nmapanalysistool.ip_port(IP_ID,PortID) " +
                                                    "VALUES({0}, {1});",
                                                     ip_id, port_id);
@@ -213,17 +217,25 @@ namespace SqlInterface
         {
             MySqlCommand cmd = new MySqlCommand(select, connection);
             MySqlDataReader dataReader = cmd.ExecuteReader();
+            object ReturnRow;
 
             //No data was found
             if (dataReader.Read() == false)
             {
+                dataReader.Close();
+
                 cmd.CommandText = insert;
                 cmd.ExecuteNonQuery();
                 cmd.CommandText = select;
                 dataReader = cmd.ExecuteReader();
+                dataReader.Read();
             }
+            
+            ReturnRow = dataReader[rowReturn];
 
-            return dataReader[rowReturn];
+            dataReader.Close();
+
+            return ReturnRow;
 
         }
 
