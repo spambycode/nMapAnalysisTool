@@ -14,6 +14,20 @@ namespace SharedLibrary
 
         public enum InsertType {IP_PortInsert = 0, IP_OSInsert = 1};  //Inserting into BST options
 
+        //---------------------------PUBLIC METHODS----------------------------------
+
+        //----------------------------------------------------------------------------
+        /// <summary>
+        /// Returns the whole binary tree of the given object
+        /// </summary>
+        public BSTNode GetTreeRoot
+        {
+            get
+            {
+                return _IPTree;
+            }
+        }
+
         //------------------------------------------------------------------------------
         public StoreIndex()
         {
@@ -69,6 +83,8 @@ namespace SharedLibrary
         public void FinishUp()
         {
         }
+
+        //----------------------PRIVATE METHODS--------------------------------
 
         //---------------------------------------------------------------------
         /// <summary>

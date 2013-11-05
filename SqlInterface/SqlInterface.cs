@@ -73,35 +73,19 @@ namespace SqlInterface
 
         }
 
-        public bool QueryIPLists(BSTNode root, int amount)
+        //----------------------------------------------------------------------
+        /// <summary>
+        /// Sends all IP's and its port information stored, to the sql database
+        /// </summary>
+        /// <param name="root">root of tree object</param>
+        /// <returns></returns>
+        public void QueryIPLists(BSTNode root)
         {
             IOTQuery(root);
-
-
-            return true;
-
         }
-
-       
-       
 
 
         //------------------------Private Methods-------------------------------
-
-        private bool ExecuteCommand(string query)
-        {
-            MySqlCommand cmd;
-            if(OpenConnection() == true)
-            {
-                cmd = new MySqlCommand(query, connection);
-                cmd.ExecuteNonQuery();
-
-                if(this.CloseConnection())
-                    return true;
-            }
-            return false;
-        }
-
 
         //--------------------------------------------------------------------------
         /// <summary>
@@ -121,6 +105,11 @@ namespace SqlInterface
 
 
         //----------------------------------------------------------------------------
+        /// <summary>
+        /// Handles all transaction to and from the SQL server, 
+        /// from the result of the current node selected
+        /// </summary>
+        /// <param name="currentNode">Node that needs to be sent to SQL database</param>
         private void QueryChild(BSTNode currentNode)
         {
             int IP_ID;
@@ -134,20 +123,8 @@ namespace SqlInterface
 
                 foreach (BSTNode.PORTInformation p in currentNode.PortInfo)
                 {
-                    if ((PORT_ID = IsPortKnown(p)) != -1)
-                    {
-                        if(IsPortConnectToIP(IP_ID, PORT_ID))
-                        {
-                            continue;
-                        }
-                        else
-                        {
-
-                        }
-                    }
-
-
-
+                    PORT_ID = InsertPort(p);
+                    ConnectIPAndPort(IP_ID, PORT_ID);
                 }
             }
         }
@@ -155,26 +132,36 @@ namespace SqlInterface
         //----------------------------------------------------------------------------
 
         /// <summary>
-        /// Check if port information has already been entered
+        /// Inserts the port and its info into the database
         /// </summary>
         /// <param name="p">Port that is being looked at</param>
-        /// <returns>returns ID of port that is known in the database</returns>
-        private int IsPortKnown(BSTNode.PORTInformation p)
+        /// <returns>returns ID of port that the table has assigned</returns>
+        private int InsertPort(BSTNode.PORTInformation p)
         {
-            string query = string.Format("SELECT * FROM nmapanalysistool.port," +
-                                         " nmapanalysistool.port_information " +
-                                         "where port_information.id = port.port_informationID " +
-                                         "and port.port_number = {0} "+
-                                         "and port., p.PORT);
 
-            MySqlCommand cmd = new MySqlCommand(query, connection);
-            MySqlDataReader dataReader = cmd.ExecuteReader();
+            string selectInfo = string.Format("Select * From nmapanalysistool.port_information" +
+                                              " where port_information.portInfo = \"{0}\"", p.SERVICE);
 
-            if (dataReader["id"] != null)
-                return Convert.ToInt32(dataReader["id"]);
+            string insertInfo = string.Format("INSERT INTO nmapanalysistool.port_information" +
+                                              "(portInfo) VALUES ({0});", p.SERVICE);
+
+            string selectPort = "Select id From nmapanalysistool.port, mapanalysistool.port_information" +
+                                " where port.port_number = {0} and port.state = {1}" +
+                                "and port.port_informationID = {2}";
+
+            string insertPort = "INSERT INTO nmapanalysistool.port" +
+                                "(port_number, state, port_informationID)" +
+                                "VALUES({0}, \"{1}\", {2})";
+            int infoID = (int)GetAndSetRowCommand(insertInfo, selectInfo, "id");
+
+            //Assign inforID to the following queries
+            selectPort = string.Format(selectPort, p.PORT, p.STATE, infoID);
+            insertPort = string.Format(insertPort, p.PORT, p.STATE, infoID);
 
 
-            return -1;
+
+
+            return (int)GetAndSetRowCommand(insertPort, selectPort, "id");
         }
 
         //-----------------------------------------------------------------------------
@@ -185,35 +172,59 @@ namespace SqlInterface
         /// <returns>ID of ip in the table</returns>
         private int InsertIP(string ip)
         {
-            MySqlCommand cmd;
-            MySqlDataReader dataReader;
             string queryCheck = string.Format("SELECT * FROM nmapanalysistool.ipaddress" +
                                               "where ipaddress.IpAddress = \"{0}\";", ip);
             string queryInsert = string.Format("INSERT INTO nmapanalysistool.ipaddress(ipaddress.IpAddress)" +  
                                                "VALUES(\"{0}\");", ip);
-            int id = -1;
+           
+            return (int)GetAndSetRowCommand(queryInsert, queryCheck, "id");
+        }
 
-            try
-            {
-                cmd = new MySqlCommand(queryInsert, connection);
+        //------------------------------------------------------------------------------------------
+        /// <summary>
+        /// Link the port information and IP together in a linking table
+        /// </summary>
+        /// <param name="ip_id">ID of IP within the table</param>
+        /// <param name="port_id">ID of the port information within the table</param>
+        private void ConnectIPAndPort(int ip_id, int port_id)
+        {
+            string selectIPandPort = string.Format("SELECT ip_port.IP_ID, ip_port.PortID " +
+                                                   "FROM nmapanalysistool.ip_port " +
+                                                   "where ip_port.IP_ID = {0} and ip_port.PortID = {1};",
+                                                   ip_id, port_id);
+            string insertIpAndPort = string.Format("INSERT INTO nmapanalysistool.ip_port(IP_ID,PortID) " +
+                                                   "VALUES({0}, {1});",
+                                                    ip_id, port_id);
 
-            } catch(MySqlException ex)
+            GetAndSetRowCommand(insertIpAndPort, selectIPandPort, "IP_ID");
+        }
+
+
+        //--------------------------------------------------------------------------------------------
+        /// <summary>
+        /// An all incumbent function that returns the first row of a given table. If no table is 
+        /// found, it will insert then return its desired row return.
+        /// </summary>
+        /// <param name="insert">Insert query string</param>
+        /// <param name="select">Select query string</param>
+        /// <param name="rowReturn">Row that wants to be returned</param>
+        /// <returns>object of requested row</returns>
+        private object GetAndSetRowCommand(string insert, string select, string rowReturn)
+        {
+            MySqlCommand cmd = new MySqlCommand(select, connection);
+            MySqlDataReader dataReader = cmd.ExecuteReader();
+
+            //No data was found
+            if (dataReader.Read() == false)
             {
-                if(ex.ErrorCode == 1062)
-                {
-                    //Dup was found
-                }
-            }
-            finally
-            {
-                cmd = new MySqlCommand(queryCheck, connection);
+                cmd.CommandText = insert;
+                cmd.ExecuteNonQuery();
+                cmd.CommandText = select;
                 dataReader = cmd.ExecuteReader();
-
-                if (dataReader.Read())
-                    id = Convert.ToInt32(dataReader["id"]);
-
             }
-            return id;
+
+            return dataReader[rowReturn];
+
         }
 
     }
