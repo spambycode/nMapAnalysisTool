@@ -7,10 +7,10 @@ using System.IO;
 
 namespace SharedLibrary
 {
-    class BSTNode
+    public class BSTNode
     {
 
-        private struct PORTInformation
+        public struct PORTInformation
         {
             public string PORT;
             public string PORT_TYPE;
@@ -24,6 +24,7 @@ namespace SharedLibrary
         public string OS_VERSION { get; set; }
         public BSTNode RChildPtr { get; set; }
         public PORTInformation[] PortInfo;
+        public short NumberOfPorts { get { return _portCount; } }
         private short _portCount;
 
         //-----------------------------------------------------------------------
@@ -73,7 +74,6 @@ namespace SharedLibrary
             ++_portCount;
         }
 
-
         //------------------------------------------------------------------------
         /// <summary>
         /// Compares IP address stored in the current node
@@ -84,23 +84,20 @@ namespace SharedLibrary
             return IP.ToUpper().CompareTo(ip.ToUpper());
         }
 
-        //--------------------------------------------------------------------------
-        public void FinishUp(BinaryWriter bIndexFileW)
+        //-------------------------------------------------------------------------
+        /// <summary>
+        /// Overloaded operator to easily compare two IP address from a node
+        /// </summary>
+        /// <param name="node">Current node being compared to</param>
+        /// <param name="ip">ip that is being checked for</param>
+        /// <returns></returns>
+        public bool operator ==(BSTNode node, string ip)
         {
+            if (node.IP.CompareTo(ip) == 0)
+                return true;
 
-            bIndexFileW.Write(_portCount);
-            bIndexFileW.Write(IP);
-            bIndexFileW.Write(OS_TYPE);
-            bIndexFileW.Write(OS_VERSION);
 
-            foreach(PORTInformation pi in PortInfo)
-            {
-                bIndexFileW.Write(pi.PORT);
-                bIndexFileW.Write(pi.PORT_TYPE);
-                bIndexFileW.Write(pi.SERVICE);
-                bIndexFileW.Write(pi.STATE);
-            }
-
+            return false;
         }
 
     }

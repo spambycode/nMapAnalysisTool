@@ -12,16 +12,19 @@ namespace nMapAnalysisTool
     {
         static void Main(string[] args)
         {
-            string[] Arguements = new string[args.Length - 1];
-            Array.Copy(args, Arguements, args.Length - 1);
 
-            SharedLibrary.RawData RawNMap = new RawData(Arguements);
-            SharedLibrary.MainData CaptureData = new MainData();
+            SharedLibrary.RawData RawNMap = new RawData(args);
+            SharedLibrary.StoreIndex CaptureData = new StoreIndex();
+            int RawReturn = -1;
 
-            while (RawNMap.ReadRawLine() != -1)
-            { 
-                
+            while ((RawReturn = RawNMap.ReadRawLine()) != -1)
+            {
+                StoreIndex.InsertType InsertOption = (StoreIndex.InsertType)RawReturn;
+
+                CaptureData.Add(RawNMap, InsertOption);
             }
+
+
         }
     }
 }

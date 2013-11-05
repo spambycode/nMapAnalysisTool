@@ -82,10 +82,10 @@ namespace SharedLibrary
                     {
                         //EX Results: 80/TCP OPEN HTTP
                         var PortTypeSplit = LineSplit[0].Split('/');
-                        PORT_NUM = PortTypeSplit[0];
-                        PORT_TYPE = PortTypeSplit[1];
-                        STATE = LineSplit[1];
-                        SERVICE = LineSplit[2];
+                        PORT_NUM          = PortTypeSplit[0];
+                        PORT_TYPE         = PortTypeSplit[1];
+                        STATE             = LineSplit[1];
+                        SERVICE           = LineSplit[2];
 
                         return 0;
                     }

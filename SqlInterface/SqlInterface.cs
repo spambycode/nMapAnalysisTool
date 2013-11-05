@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using MySql.Data.MySqlClient;
+using SharedLibrary;
 
 namespace SqlInterface
 {
@@ -72,6 +73,15 @@ namespace SqlInterface
 
         }
 
+        public bool QueryIPLists(BSTNode root, int amount)
+        {
+            IOTQuery(root);
+
+
+            return true;
+
+        }
+
        
        
 
@@ -92,6 +102,66 @@ namespace SqlInterface
             return false;
         }
 
+
+        //--------------------------------------------------------------------------
+        /// <summary>
+        /// Easily query all IP's in the tree, using the In order Traversal method
+        /// </summary>
+        /// <param name="currentNode">Root of the BSTNode tree</param>
+        private void IOTQuery(BSTNode currentNode)
+        {
+                if (currentNode == null)
+                    return;
+
+                IOTQuery(currentNode.LChildPtr);
+                QueryChild(currentNode);
+                IOTQuery(currentNode.RChildPtr);
+
+        }
+
+
+        //----------------------------------------------------------------------------
+        private void QueryChild(BSTNode currentNode)
+        {
+            string queryStr;
+
+            if (this.OpenConnection() == true)
+            {
+                foreach (BSTNode.PORTInformation p in currentNode.PortInfo)
+                {
+                    queryStr = string.Format("SELECT * FROM nmapanalysistool.port," + 
+                                             " nmapanalysistool.port_information " + 
+                                             "where port_information.id = port.port_informationID " + 
+                                             "and port.port_number = {0};", p.PORT);
+
+
+
+                }
+            }
+        }
+
+
+        /// <summary>
+        /// Check if port information has already been entered
+        /// </summary>
+        /// <param name="p">Port that is being looked at</param>
+        /// <returns>true if port is known</returns>
+        private bool IsPortKnown(BSTNode.PORTInformation p, string ip)
+        {
+            string query = string.Format("SELECT * FROM nmapanalysistool.port," +
+                                         " nmapanalysistool.port_information " +
+                                         "where port_information.id = port.port_informationID " +
+                                         "and port.port_number = {0};", p.PORT);
+
+            MySqlCommand cmd = new MySqlCommand(query, connection);
+            MySqlDataReader dataReader = cmd.ExecuteReader();
+
+            if (dataReader["id"] != null)
+                return true;
+
+
+            return false;
+        }
 
     }
 }

@@ -9,23 +9,15 @@ namespace SharedLibrary
 {
     public class StoreIndex
     {
-        private FileStream indexBackupFile;      //Stream to BST tree backup file
-        private BinaryWriter bBackupFileW;       //Binary writer for saving BST
-        private BinaryReader bBackupFileR;       //Binary reader for reading saved BST
         private BSTNode _IPTree;                 //Binary tree holding IP, port, and OS information
         private short _ipCounter;                //Total amount of IP's searched
 
-        enum InsertType {IP_PortInsert, IP_OSInsert};  //Inserting into BST options
+        public enum InsertType {IP_PortInsert = 0, IP_OSInsert = 1};  //Inserting into BST options
 
         //------------------------------------------------------------------------------
         public StoreIndex()
         {
-            indexBackupFile = new FileStream("index.bin", FileMode.OpenOrCreate);
-            bBackupFileR = new BinaryReader(indexBackupFile);
-            bBackupFileW = new BinaryWriter(indexBackupFile);
             _ipCounter = 0;
-
-
         }
 
         //-------------------------------------------------------------------------------
@@ -41,20 +33,20 @@ namespace SharedLibrary
 
             if (_IPTree == null)
             {
-
                 _IPTree = new BSTNode(RD.IP_ADDRESS);
-
+                ipNode  = _IPTree;
             }
-
-            ipNode = SearchForIP(RD.IP_ADDRESS);
-
-            if(ipNode == null)
+            else
             {
-                InsertIPAddress(RD.IP_ADDRESS);
                 ipNode = SearchForIP(RD.IP_ADDRESS);
+
+                if (ipNode == null)
+                {
+                    InsertIPAddress(RD.IP_ADDRESS);
+                    ipNode = SearchForIP(RD.IP_ADDRESS);
+                }
+
             }
-
-
 
             switch (optionType)
             {
@@ -76,11 +68,6 @@ namespace SharedLibrary
         /// </summary>
         public void FinishUp()
         {
-            bBackupFileW.Write(_ipCounter);
-            IOTSave(_IPTree);
-            bBackupFileR.Close();
-            bBackupFileW.Close();
-            indexBackupFile.Close();
         }
 
         //---------------------------------------------------------------------
@@ -123,6 +110,8 @@ namespace SharedLibrary
         {
             BSTNode prevNode = null, currentNode = _IPTree;
 
+
+            //Search tree to find an empty spot
             while (currentNode != null)
             {
                 prevNode = currentNode;
@@ -135,7 +124,7 @@ namespace SharedLibrary
                 {
                     currentNode = currentNode.LChildPtr;
                 }
-                else
+                else //Similar IP was found in tree
                 {
                     return false;
                 }
@@ -173,46 +162,9 @@ namespace SharedLibrary
                     return;
 
             IOTSave(currentNode.LChildPtr);
-            currentNode.FinishUp(bBackupFileW);
+          //  currentNode.FinishUp(bBackupFileW);
             IOTSave(currentNode.RChildPtr);
 
-        }
-
-        //-------------------------------------------------------------------------
-        /// <summary>
-        /// Rebuilds the BST from the backup file
-        /// </summary>
-        private void ReadBackUpFile()
-        {
-            short PortCount;
-            RawData rawData = new RawData();
-            _ipCounter = bBackupFileR.ReadInt16();
-
-
-            for(int i = 0; i < _ipCounter; i++)
-            {
-                rawData.IP_ADDRESS = bBackupFileR.ReadString();
-                rawData.OS_TYPE    = bBackupFileR.ReadString();
-                rawData.OS_VERSION = bBackupFileR.ReadString();
-                PortCount = bBackupFileR.ReadInt16();
-
-                if (PortCount > 0)
-                {
-                    for (int j = 0; i < PortCount; j++)
-                    {
-                        rawData.PORT_NUM  = bBackupFileR.ReadString();
-                        rawData.PORT_TYPE = bBackupFileR.ReadString();
-                        rawData.SERVICE   = bBackupFileR.ReadString();
-                        rawData.STATE     = bBackupFileR.ReadString();
-
-                        Add(rawData, InsertType.IP_PortInsert);
-
-                    }
-                }
-                    
-                Add(rawData, InsertType.IP_OSInsert);
-
-            }
         }
     }
 
