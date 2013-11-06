@@ -1,4 +1,17 @@
-﻿using System;
+﻿/*Author: George J Karaszi
+ * Purpose:To perform and assist network security officer's, in their attempt 
+ *         to secure their networks. By providing detailed reports of each computer 
+ *         on the current network.
+ * 
+ * 
+ * Fundamental Problem: Storing IP's and its ports in a BST tree is fine.  How ever, due to time constraints 
+ *                      on this project. During a Range scan using the '/24' command causes the BST to become 
+ *                      a O(N) tree. Since there is no height balance implemented.
+ *                      
+ *      *TL;DR : no height(AVL) balance implemented.
+ */
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
