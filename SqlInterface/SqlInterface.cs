@@ -148,17 +148,17 @@ namespace SqlInterface
                                               "(portInfo) VALUES ('{0}');", p.SERVICE);
 
             string selectPort = "Select * From nmapanalysistool.port, nmapanalysistool.port_information" +
-                                " where port.port_number = {0} and port.state = '{1}' " +
-                                "and port.port_informationID = {2}";
+                                " where port.port_number = {0} and port.port_type = '{1}' and port.state = '{2}' " +
+                                "and port.port_informationID = {3}";
 
             string insertPort = "INSERT INTO nmapanalysistool.port" +
-                                "(port_number, state, port_informationID)" +
-                                "VALUES({0}, '{1}', {2})";
+                                "(port_number, port_type, state, port_informationID)" +
+                                "VALUES({0}, '{1}', '{2}', {3})";
             int infoID = (int)GetAndSetRowCommand(insertInfo, selectInfo, "id");
 
             //Assign inforID to the following queries
-            selectPort = string.Format(selectPort, p.PORT, p.STATE, infoID);
-            insertPort = string.Format(insertPort, p.PORT, p.STATE, infoID);
+            selectPort = string.Format(selectPort, p.PORT, p.PORT_TYPE, p.STATE, infoID);
+            insertPort = string.Format(insertPort, p.PORT, p.PORT_TYPE, p.STATE, infoID);
 
 
 

@@ -71,7 +71,8 @@ namespace SharedLibrary
                 if (LineSplit.Length == 0)
                     continue;
 
-                if (IPAddress.TryParse(LineSplit[LineSplit.Length-1], out IpAddress))
+                string IPCheckString = LineSplit[LineSplit.Length - 1].Replace('(', ' ').Replace(')', ' ');
+                if (IPAddress.TryParse(IPCheckString.Trim(), out IpAddress))
                 {
                     IP_ADDRESS = IpAddress.ToString();
                 }
