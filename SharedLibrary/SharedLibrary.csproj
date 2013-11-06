@@ -41,7 +41,6 @@
   <ItemGroup>
     <Compile Include="BSTNode.cs" />
     <Compile Include="StoreIndex.cs" />
-    <Compile Include="MainData.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RawData.cs" />
   </ItemGroup>

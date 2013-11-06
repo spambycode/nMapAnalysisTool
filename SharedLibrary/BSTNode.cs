@@ -1,4 +1,11 @@
-﻿using System;
+﻿/*Author: George J Karaszi
+ * 
+ * Discription:Node class for the BST tree. Stores all the information for the given IP.
+ *             IE:Port number, Port Service Type, State.... And OS details(if given)
+ * 
+ */
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -18,12 +25,17 @@ namespace SharedLibrary
             public string SERVICE;
         }
 
+        //Child pointers
         public BSTNode LChildPtr { get; set; }
+        public BSTNode RChildPtr { get; set; }
+
+        //Stored information
         public string IP { get; set; }
         public string OS_TYPE { get; set; }
         public string OS_VERSION { get; set; }
-        public BSTNode RChildPtr { get; set; }
         public PORTInformation[] PortInfo;
+
+        //Counters
         public short NumberOfPorts { get { return _portCount; } }
         private short _portCount;
 

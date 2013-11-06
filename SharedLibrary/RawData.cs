@@ -1,11 +1,11 @@
 ﻿/*
  * Author:George Karaszi
- * Date:10-25-2013
- * Discription: Reads incoming data from the nmap applcaiton in its raw form. 
- *              Proceeds to prase and process the information into identifyible 
- *              varibles. That will allow for storeage and easy access later.
+ * Date:11-5-2013
+ * Description: Reads incoming data from the nmap application in its raw form. 
+ *              Proceeds to parse and process the information into identifiable 
+ *              variables. That will allow for storage and easy access later.
  *              
- * Programes Accessed: nmap.exe (Assumed that system enviorment's have been set)
+ * Programs Accessed: nmap.exe (Assumed that system environment's have been set)
  */
 
 using System;
@@ -71,17 +71,19 @@ namespace SharedLibrary
                 if (LineSplit.Length == 0)
                     continue;
 
+                //Incoming string containing the IP can often be clouded with '(' IP ')'.
                 string IPCheckString = LineSplit[LineSplit.Length - 1].Replace('(', ' ').Replace(')', ' ');
+
                 if (IPAddress.TryParse(IPCheckString.Trim(), out IpAddress))
                 {
                     IP_ADDRESS = IpAddress.ToString();
                 }
-
-                //nMap always places port numbers first before information and status info
                 else
                 {
+                    //nMap always places port numbers first before information and status info
                     //EX Results: 80/TCP OPEN HTTP
                     var PortTypeSplit = LineSplit[0].Split('/');
+
                     if (PortTypeSplit.Length == 2 && LineSplit.Length >= 3 &&
                         Int32.TryParse(PortTypeSplit[0], out portTest))
                     {      

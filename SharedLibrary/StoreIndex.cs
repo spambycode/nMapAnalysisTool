@@ -1,4 +1,12 @@
-﻿using System;
+﻿/*Author: George Karaszi
+ * Date:11-5-2013
+ * 
+ * Desicrition: Handles the binary tree functions for the incoming data that nmap has produced.
+ * 
+ * NOTE: No balancing is implemented. So tree can easily become O(N) especially during a range network scan.
+ */
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;

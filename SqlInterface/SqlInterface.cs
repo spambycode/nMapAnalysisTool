@@ -1,4 +1,14 @@
-﻿using System;
+﻿/*Author: George Karaszi
+ * Date: 11-5-2013
+ * 
+ * Discription:Handles all interactions with the given database.
+ *         -Takes the root of the tree from StoreIndex.cs and queries 
+ *          all information to the database, by checking(Select) and inserting. 
+ *          To determin if data is currently present in the database.
+ */
+
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -17,6 +27,7 @@ namespace SqlInterface
         private string uid;
         private string password;
 
+        
         public SqlInterface(string server, string database, string uid, string password)
         {
             this.server = server;
@@ -219,7 +230,7 @@ namespace SqlInterface
             MySqlDataReader dataReader = cmd.ExecuteReader();
             object ReturnRow;
 
-            //No data was found
+            //No data was found if condition is true.
             if (dataReader.Read() == false)
             {
                 dataReader.Close();
